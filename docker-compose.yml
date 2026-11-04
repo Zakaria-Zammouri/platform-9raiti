@@ -1,0 +1,245 @@
+version: "3.9"
+services:
+
+  angular:
+    build:
+      context: ./9raiti
+      dockerfile: Dockerfile
+    container_name: angular
+    ports:
+      - "4200:80"
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - elearning-net
+
+  api-gateway:
+    build:
+      context: ./ApiGateway/ApiGateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "9000:9000"
+    depends_on:
+      dotnet-service:
+        condition: service_started
+      spring-service:
+        condition: service_started
+    networks:
+      - elearning-net
+
+  dotnet-service:
+    build:
+      context: ./MicroServiceDotNet/MicroServiceDotNet
+      dockerfile: Dockerfile
+    container_name: dotnet-service
+    restart: on-failure
+    environment:
+      environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=GestionUtilisateurs;User Id=sa;Password=${SQLSERVER_PASSWORD};TrustServerCertificate=True;
+      - Jwt__Key=${JWT_SECRET}
+      - SmtpSettings__Username=${SMTP_USERNAME}
+      - SmtpSettings__From=${SMTP_USERNAME}
+      - SmtpSettings__SenderEmail=${SMTP_USERNAME}
+      - SmtpSettings__Password=${SMTP_PASSWORD}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - elearning-net
+
+  spring-service:
+    build:
+      context: ./MicroServiceSpring
+      dockerfile: Dockerfile
+    container_name: spring-service
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/GestionCours
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MINIO_URL=http://minio-service:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=${MINIO_PASSWORD}
+      - MINIO_BUCKET=cours
+      - MINIO_PUBLIC_URL=http://localhost:9002
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-service:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    networks:
+      - elearning-net
+
+  notification-service:
+    build:
+      context: ./MicroServiceNotification
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: on-failure
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://notification-postgres:5432/GestionNotification
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=REMOVED_PASSWORD
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - elearning-net
+
+  ai-service:
+    build:
+      context: ./MicroServiceIA
+    container_name: ai-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ai-model-data:/app
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  minio-service:
+    image: minio/minio:latest
+    container_name: minio-service
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin         # ← doit être ici
+      MINIO_ROOT_PASSWORD: REMOVED_PASSWORD  # ← min 8 caractères
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - elearning-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "REMOVED_PASSWORD"
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "REMOVED_PASSWORD"
+      MSSQL_AGENT_ENABLED: "false"
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "REMOVED_PASSWORD", "-Q", "SELECT 1", "-No"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      - POSTGRES_DB=GestionCours
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=REMOVED_PASSWORD
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  notification-postgres:
+    image: postgres:15
+    container_name: notification-postgres
+    environment:
+      - POSTGRES_DB=GestionNotification
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=REMOVED_PASSWORD
+    ports:
+      - "5434:5432"
+    volumes:
+      - notification-postgres-data:/var/lib/postgresql/data
+    networks:
+      - elearning-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+networks:
+  elearning-net:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+  postgres-data:
+  notification-postgres-data:
+  minio-data:
+  ai-model-data:

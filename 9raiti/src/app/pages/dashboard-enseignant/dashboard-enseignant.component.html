@@ -1,0 +1,1529 @@
+<div class="min-h-screen" style="background:var(--bg);">
+  <app-navbar></app-navbar>
+  <div class="flex h-[calc(100vh-64px)] overflow-hidden">
+
+    <!-- ── SIDEBAR ─────────────────────────────────────────────────────── -->
+    <aside class="hidden md:flex flex-col w-64 flex-shrink-0 overflow-y-auto"
+           style="background:var(--surface);border-right:1px solid var(--border);padding:20px 14px;">
+
+      <!-- User card -->
+      <div class="p-4 rounded-2xl mb-5" style="background:var(--green-dim);border:1px solid rgba(16,185,129,.2);">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0"
+               style="background:linear-gradient(135deg,#10b981,#059669);color:white;font-family:'Syne',sans-serif;">
+            {{ userName ? userName.charAt(0) : 'E' }}
+          </div>
+          <div class="min-w-0">
+            <div class="text-sm font-bold truncate" style="color:var(--text);">{{ userName }}</div>
+            <div class="text-xs" style="color:var(--green);">Enseignant</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-xs font-bold uppercase tracking-widest px-2 mb-2" style="color:var(--text-4);">Navigation</p>
+      <nav class="space-y-1 flex-1">
+        <button (click)="setSection('accueil')" class="nav-item" [class.active]="activeSection==='accueil'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Tableau de bord</span>
+        </button>
+        <button (click)="ouvrirContenu()" class="nav-item" [class.active]="activeSection==='contenu'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+          <span>Mon contenu</span>
+        </button>
+        <button (click)="setSection('apprenants'); loadMesApprenants()" class="nav-item" [class.active]="activeSection==='apprenants'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          <span>Mes apprenants</span>
+          <span *ngIf="mesApprenants.length > 0"
+                class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full"
+                style="background:var(--brand-dim);color:var(--brand);">
+            {{ mesApprenants.length }}
+          </span>
+        </button>
+
+        <button (click)="setSection('notifications')" class="nav-item" [class.active]="activeSection==='notifications'">
+          <span>🔔</span>
+          <span>Notifications</span>
+        </button>
+
+        <button (click)="ouvrirSectionQuiz()" class="nav-item" [class.active]="activeSection==='quiz'">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Mes Quiz</span>
+          <span *ngIf="mesQuiz.length > 0" class="ml-auto text-xs font-bold px-1.5 py-0.5 rounded-full"
+                style="background:var(--purple-dim,#ede9fe);color:var(--purple,#7c3aed);">
+            {{ mesQuiz.length }}
+          </span>
+        </button>
+
+      </nav>
+
+      <!-- Actions rapides -->
+      <div class="mt-4 space-y-2 pt-4" style="border-top:1px solid var(--border);">
+  <p class="text-xs font-bold uppercase tracking-widest px-2 mb-2" style="color:var(--text-4);">
+    Créer
+  </p>
+
+  <!-- Nouveau module -->
+  <button (click)="ouvrirContenu(); openCreateMod()"
+          class="btn btn-ghost w-full"
+          style="font-size:12px;padding:8px 12px;justify-content:flex-start;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nouveau module
+  </button>
+
+  <!-- Nouveau cours -->
+  <button (click)="ouvrirContenu(); openCreateCours()"
+          class="btn btn-brand w-full"
+          style="font-size:12px;padding:9px 12px;display:flex;align-items:center;gap:6px;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nouveau cours
+  </button>
+
+  <!-- Nouveau quiz -->
+  <button (click)="ouvrirSectionQuiz(); ouvrirCreerQuiz()"
+          class="btn w-full"
+          style="font-size:12px;padding:9px 12px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;border:none;border-radius:10px;display:flex;align-items:center;gap:6px;font-weight:600;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Nouveau quiz
+  </button>
+
+</div>
+</aside>
+
+
+  <!-- ── Mobile bottom nav ──────────────────────────────────── -->
+  <nav class="mobile-nav md:hidden">
+    <button class="mobile-nav-item" [class.active]="activeSection==='accueil'" (click)="setSection('accueil')">
+      <span class="mobile-nav-icon">🏠</span>Dashboard
+    </button>
+    <button class="mobile-nav-item" [class.active]="activeSection==='contenu'" (click)="ouvrirContenu()">
+      <span class="mobile-nav-icon">📚</span>Contenu
+    </button>
+    <button class="mobile-nav-item" [class.active]="activeSection==='apprenants'" (click)="setSection('apprenants'); loadMesApprenants()">
+      <span class="mobile-nav-icon">👥</span>Apprenants
+    </button>
+    <button class="mobile-nav-item" [class.active]="activeSection==='quiz'" (click)="ouvrirSectionQuiz()">
+      <span class="mobile-nav-icon">🎯</span>Quiz
+    </button>
+  </nav>
+    <!-- ── MAIN ─────────────────────────────────────────────────────────── -->
+    <main class="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+
+      <!-- Alerts globales -->
+      <div *ngIf="successMsg" class="alert alert-green animate-fade-in">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>
+        {{successMsg}}
+      </div>
+      <div *ngIf="errorMsg" class="alert alert-red animate-fade-in">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/></svg>
+        {{errorMsg}}
+      </div>
+
+      <!-- ══ SECTION : Accueil ══ -->
+      <ng-container *ngIf="activeSection==='accueil'">
+        <div class="animate-fade-in space-y-5">
+
+          <!-- Hero -->
+          <div class="relative overflow-hidden rounded-2xl p-6 sm:p-8"
+               style="background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1px solid rgba(16,185,129,.25);">
+            <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl" style="background:linear-gradient(90deg,transparent,var(--green),transparent);"></div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-[3px] mb-2" style="color:var(--green);">Espace Enseignant</p>
+                <h1 class="text-2xl sm:text-3xl font-bold mb-2" style="font-family:'Syne',sans-serif;color:var(--text);">
+                  Bonjour, <span style="color:var(--green);">{{ userName }}</span> 👋
+                </h1>
+                <p class="text-sm" style="color:var(--text-2);">Gérez vos modules et cours depuis votre espace personnel.</p>
+              </div>
+              <button (click)="ouvrirContenu(); openCreateCours()" class="btn btn-brand self-start sm:self-auto flex-shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Créer un cours
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div *ngFor="let s of stats; let i=index" class="glass glass-hover rounded-2xl p-5 relative overflow-hidden animate-slide-up" [class]="'d-'+i">
+              <div class="stat-accent" [style.background]="s.color"></div>
+              <div class="w-11 h-11 rounded-xl flex items-center justify-center text-xl mb-3" [style.background]="s.dim">{{s.icon}}</div>
+              <div class="text-2xl font-bold mb-0.5" style="font-family:'Syne',sans-serif;color:var(--text);">{{s.value}}</div>
+              <div class="text-xs" style="color:var(--text-3);">{{s.label}}</div>
+            </div>
+          </div>
+
+          <!-- Aperçu modules & cours -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Mes modules -->
+            <div class="glass rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm" style="font-family:'Syne',sans-serif;color:var(--text);">
+                  Mes modules <span class="badge b-brand ml-1">{{modules.length}}</span>
+                </h3>
+                <button (click)="ouvrirContenu()" class="text-xs font-semibold" style="color:var(--green);background:none;border:none;cursor:pointer;">Gérer →</button>
+              </div>
+              <div *ngIf="loadingModules" class="flex justify-center py-4">
+                <svg class="animate-spin-slow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--brand);"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+              </div>
+              <div *ngIf="!loadingModules" class="space-y-2">
+                <div *ngFor="let m of modules.slice(0,4)" class="flex items-center justify-between p-2.5 rounded-xl" style="background:var(--surface-2);border:1px solid var(--border);">
+                  <div class="min-w-0 flex-1">
+                    <div class="text-sm font-semibold truncate" style="color:var(--text);">{{m.nom}}</div>
+                    <div class="text-xs font-mono" style="color:var(--text-3);">{{m.code}}</div>
+                  </div>
+                  <span class="badge ml-2" [class.b-green]="m.actif" [class.b-red]="!m.actif">{{m.actif ? 'Actif' : 'Inactif'}}</span>
+                </div>
+                <div *ngIf="modules.length === 0" class="text-xs text-center py-3" style="color:var(--text-3);">
+                  Aucun module. <button (click)="ouvrirContenu(); openCreateMod()" style="background:none;border:none;cursor:pointer;color:var(--brand);font-weight:700;">Créer →</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mes cours récents -->
+            <div class="glass rounded-2xl p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sm" style="font-family:'Syne',sans-serif;color:var(--text);">
+                  Mes cours <span class="badge b-green ml-1">{{cours.length}}</span>
+                </h3>
+                <button (click)="ouvrirContenu()" class="text-xs font-semibold" style="color:var(--green);background:none;border:none;cursor:pointer;">Gérer →</button>
+              </div>
+              <div *ngIf="loadingCours" class="flex justify-center py-4">
+                <svg class="animate-spin-slow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--brand);"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+              </div>
+              <div *ngIf="!loadingCours" class="space-y-2">
+                <div *ngFor="let c of cours.slice(0,4)" class="p-2.5 rounded-xl" style="background:var(--surface-2);border:1px solid var(--border);">
+                  <div class="flex items-center justify-between">
+                    <div class="text-sm font-semibold truncate flex-1 mr-2" style="color:var(--text);">{{c.titre}}</div>
+                    <span class="badge text-xs" [class]="getStatutCls(c.statut)">{{c.statut}}</span>
+                  </div>
+                  <div class="text-xs mt-0.5" style="color:var(--text-3);">{{c.niveau}} · {{getModName(c.moduleId)}}</div>
+                </div>
+                <div *ngIf="cours.length === 0" class="text-xs text-center py-3" style="color:var(--text-3);">
+                  Aucun cours. <button (click)="ouvrirContenu(); openCreateCours()" style="background:none;border:none;cursor:pointer;color:var(--brand);font-weight:700;">Créer →</button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ══ SECTION : Mon contenu (hiérarchie Catégorie → Module → Cours) ══ -->
+      <ng-container *ngIf="activeSection==='contenu'">
+        <div class="animate-fade-in space-y-5">
+
+          <!-- Header + fil d'Ariane -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="text-xl font-bold" style="font-family:'Syne',sans-serif;color:var(--text);">Mon contenu</h2>
+              <nav class="flex items-center gap-2 text-sm mt-1 flex-wrap" style="color:var(--text-3);">
+                <button (click)="contenuRetourCategories()" class="font-semibold hover:underline"
+                        [style.color]="contenuNiveau>0 ? 'var(--brand)' : 'var(--text)'"
+                        style="background:none;border:none;cursor:pointer;padding:0;">
+                  🗂 Catégories
+                </button>
+                <ng-container *ngIf="contenuNiveau >= 1 && contenuCategorieSelectee">
+                  <span>›</span>
+                  <button (click)="contenuRetourModules()" class="font-semibold hover:underline"
+                          [style.color]="contenuNiveau>1 ? 'var(--brand)' : 'var(--text)'"
+                          style="background:none;border:none;cursor:pointer;padding:0;">
+                    📦 {{ contenuCategorieSelectee.nom }}
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="contenuNiveau === 2 && contenuModuleSelectionne">
+                  <span>›</span>
+                  <span style="color:var(--text);">📘 {{ contenuModuleSelectionne.nom }}</span>
+                </ng-container>
+              </nav>
+            </div>
+            <!-- Actions contextuelles -->
+            <div class="flex gap-2 flex-wrap">
+              <button *ngIf="contenuNiveau > 0" (click)="contenuNiveau === 1 ? contenuRetourCategories() : contenuRetourModules()"
+                      class="btn btn-ghost btn-sm">← Retour</button>
+              <button *ngIf="contenuNiveau === 0" (click)="openCreateCat()" class="btn btn-ghost btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Catégorie
+              </button>
+              <button *ngIf="contenuNiveau >= 1" (click)="openCreateMod()" class="btn btn-ghost btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Module
+              </button>
+              <button *ngIf="contenuNiveau >= 1" (click)="openCreateCours()" class="btn btn-brand btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Cours
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Niveau 0 : Catégories (style carte catalogue) ── -->
+          <ng-container *ngIf="contenuNiveau === 0">
+            <!-- Skeleton -->
+            <div *ngIf="loadingCategories" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div *ngFor="let s of [1,2,3,4,5,6]" class="glass rounded-2xl overflow-hidden">
+                <div class="h-24 skeleton"></div>
+                <div class="p-4 space-y-3">
+                  <div class="skeleton h-4 w-3/4 rounded-lg"></div>
+                  <div class="skeleton h-3 w-full rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Vide -->
+            <div *ngIf="!loadingCategories && categories.length === 0"
+                 class="flex flex-col items-center justify-center py-14 rounded-2xl"
+                 style="background:var(--surface);border:1px dashed var(--border);">
+              <div class="text-4xl mb-3">📂</div>
+              <p class="font-semibold" style="color:var(--text);">Aucune catégorie</p>
+              <button (click)="openCreateCat()" class="btn btn-brand mt-4">Créer une catégorie</button>
+            </div>
+            <!-- Grille style catalogue -->
+            <div *ngIf="!loadingCategories && categories.length > 0"
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <div *ngFor="let cat of categories; let i=index"
+                   class="glass glass-hover rounded-2xl overflow-hidden animate-slide-up flex flex-col"
+                   [class]="'d-' + (i % 5)"
+                   style="cursor:pointer;">
+                <!-- Bannière colorée cliquable vers les modules -->
+                <div (click)="selectionnerCategorie(cat)"
+                     class="h-28 flex flex-col items-center justify-center gap-2 relative"
+                     [style.background]="getCatStyle(i).dim">
+                  <div class="absolute inset-0 opacity-10"
+                       style="background:linear-gradient(135deg,transparent,rgba(0,0,0,.5));"></div>
+                  <span class="relative z-10 text-4xl">{{ getCatStyle(i).icon }}</span>
+                  <div class="absolute bottom-0 left-0 right-0 h-0.5"
+                       [style.background]="getCatStyle(i).color"></div>
+                </div>
+                <!-- Contenu -->
+                <div class="p-4 flex-1 flex flex-col">
+                  <h3 (click)="selectionnerCategorie(cat)"
+                      class="font-bold text-base mb-1 clamp-2"
+                      style="font-family:'Syne',sans-serif;color:var(--text);">{{ cat.nom }}</h3>
+                  <p class="text-xs leading-relaxed clamp-2 mb-3 flex-1" style="color:var(--text-3);">
+                    {{ cat.description || 'Pas de description' }}
+                  </p>
+                  <!-- Actions -->
+                  <div class="flex items-center justify-between pt-3" style="border-top:1px solid var(--border);">
+                    <button (click)="selectionnerCategorie(cat)"
+                            class="badge text-xs"
+                            [style.background]="getCatStyle(i).dim"
+                            [style.border-color]="getCatStyle(i).color"
+                            [style.color]="getCatStyle(i).color"
+                            style="border:none;cursor:pointer;">
+                      Voir les modules →
+                    </button>
+                    <div class="flex gap-1">
+                      <button (click)="openEditCat(cat)" class="btn btn-ghost btn-sm" style="padding:4px 8px;" title="Modifier">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button (click)="confirmDelete('categorie', cat.id!, cat.nom)" class="btn btn-danger btn-sm" style="padding:4px 8px;" title="Supprimer">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- ── Niveau 1 : Modules (style carte catalogue) ── -->
+          <ng-container *ngIf="contenuNiveau === 1">
+            <!-- Skeleton -->
+            <div *ngIf="contenuLoadingModules" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div *ngFor="let s of [1,2,3,4,5,6]" class="glass rounded-2xl p-5 space-y-4">
+                <div class="flex gap-3">
+                  <div class="skeleton w-12 h-12 rounded-xl flex-shrink-0"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="skeleton h-4 w-3/4 rounded-lg"></div>
+                    <div class="skeleton h-3 w-1/2 rounded-lg"></div>
+                  </div>
+                </div>
+                <div class="skeleton h-3 w-full rounded-lg"></div>
+                <div class="skeleton h-8 w-full rounded-xl"></div>
+              </div>
+            </div>
+            <!-- Vide -->
+            <div *ngIf="!contenuLoadingModules && contenuModules.length === 0"
+                 class="flex flex-col items-center justify-center py-14 rounded-2xl"
+                 style="background:var(--surface);border:1px dashed var(--border);">
+              <div class="text-4xl mb-3">📦</div>
+              <p class="font-semibold" style="color:var(--text);">Aucun module dans cette catégorie</p>
+              <button (click)="openCreateMod()" class="btn btn-brand mt-4">Créer un module</button>
+            </div>
+            <!-- Grille style catalogue -->
+            <div *ngIf="!contenuLoadingModules && contenuModules.length > 0"
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div *ngFor="let mod of contenuModules; let i=index"
+                   class="glass glass-hover rounded-2xl p-5 animate-slide-up flex flex-col"
+                   [class]="'d-' + (i % 5)">
+                <!-- Header -->
+                <div class="flex items-start gap-3 mb-4">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                       [style.background]="getModColor(i).dim">📦</div>
+                  <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-sm clamp-2 mb-1"
+                        style="font-family:'Syne',sans-serif;color:var(--text);">{{ mod.nom }}</h3>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="text-xs font-mono px-2 py-0.5 rounded-md"
+                            style="background:var(--surface-2);color:var(--brand);border:1px solid var(--border);">
+                        {{ mod.code }}
+                      </span>
+                      <span class="badge text-xs"
+                            [style.background]="getModStatutStyle(mod).bg"
+                            [style.border-color]="getModStatutStyle(mod).border"
+                            [style.color]="getModStatutStyle(mod).color">
+                        {{ getModStatutStyle(mod).label }}
+                      </span>
+                      <!-- Badge propriétaire -->
+                      <span *ngIf="isMonModule(mod)" class="badge b-green text-xs" style="font-size:9px;">✅ Mon module</span>
+                      <span *ngIf="!isMonModule(mod)" class="badge text-xs" style="background:var(--surface-3);color:var(--text-3);font-size:9px;">👤 Autre</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Description -->
+                <p class="text-xs leading-relaxed mb-4 flex-1 clamp-2" style="color:var(--text-3);">
+                  {{ mod.description || 'Aucune description' }}
+                </p>
+                <div style="border-top:1px solid var(--border);margin-bottom:12px;"></div>
+                <!-- Actions -->
+                <div class="flex gap-2">
+                  <button (click)="selectionnerModule(mod)"
+                          class="btn btn-brand btn-sm flex-1"
+                          style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <span>📘</span> Voir les cours
+                  </button>
+                  <button *ngIf="isMonModule(mod)" (click)="openEditMod(mod)" class="btn btn-ghost btn-sm" title="Modifier">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button *ngIf="isMonModule(mod)" (click)="confirmDelete('module', mod.id!, mod.nom)" class="btn btn-danger btn-sm" title="Supprimer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- ── Niveau 2 : Cours (style carte catalogue) ── -->
+          <ng-container *ngIf="contenuNiveau === 2">
+            <!-- Skeleton -->
+            <div *ngIf="contenuLoadingCours" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div *ngFor="let s of [1,2,3,4,5,6]" class="glass rounded-2xl overflow-hidden">
+                <div class="skeleton h-28"></div>
+                <div class="p-4 space-y-3">
+                  <div class="skeleton h-4 w-3/4 rounded-lg"></div>
+                  <div class="skeleton h-3 w-full rounded-lg"></div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <div class="skeleton h-10 rounded-lg"></div>
+                    <div class="skeleton h-10 rounded-lg"></div>
+                  </div>
+                  <div class="skeleton h-9 rounded-xl"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Vide -->
+            <div *ngIf="!contenuLoadingCours && contenuCours.length === 0"
+                 class="flex flex-col items-center justify-center py-14 rounded-2xl"
+                 style="background:var(--surface);border:1px dashed var(--border);">
+              <div class="text-4xl mb-3">📘</div>
+              <p class="font-semibold" style="color:var(--text);">Aucun cours dans ce module</p>
+              <button (click)="openCreateCours()" class="btn btn-brand mt-4">Créer un cours</button>
+            </div>
+            <!-- Grille style catalogue -->
+            <div *ngIf="!contenuLoadingCours && contenuCours.length > 0"
+                 class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div *ngFor="let c of contenuCours; let i=index"
+                   class="glass glass-hover rounded-2xl overflow-hidden animate-slide-up flex flex-col"
+                   [class]="'d-' + (i % 5)">
+                <!-- Bannière -->
+                <div class="h-28 flex items-center justify-center text-4xl relative"
+                     [style.background]="getModColor(i).dim">
+                  <div class="absolute inset-0 opacity-10"
+                       style="background:linear-gradient(135deg,transparent,rgba(0,0,0,.5));"></div>
+                  <span class="relative z-10">📖</span>
+                  <!-- Statut top-right -->
+                  <div class="absolute top-3 right-3">
+                    <span class="badge text-xs"
+                          [style.background]="getCoursStatutStyle(c.statut ?? '').bg"
+                          [style.border-color]="getCoursStatutStyle(c.statut ?? '').border"
+                          [style.color]="getCoursStatutStyle(c.statut ?? '').color">
+                      {{ getCoursStatutStyle(c.statut ?? '').label }}
+                    </span>
+                  </div>
+                  <!-- Niveau top-left -->
+                  <div *ngIf="c.niveau" class="absolute top-3 left-3">
+                    <span class="badge text-xs"
+                          style="background:rgba(0,0,0,.45);border-color:transparent;color:white;">
+                      {{ getNiveauStyle(c.niveau).label }}
+                    </span>
+                  </div>
+                  <!-- Fichier bottom-right -->
+                  <div *ngIf="c.filePath" class="absolute bottom-3 right-3">
+                    <span class="badge text-xs" style="background:rgba(0,0,0,.5);border-color:transparent;color:white;">
+                      {{ isPdf(c.filePath) ? '📄 PDF' : '🎬 Vidéo' }}
+                    </span>
+                  </div>
+                  <!-- Badge propriétaire bottom-left -->
+                  <div class="absolute bottom-3 left-3">
+                    <span *ngIf="isMonCours(c)" class="badge b-green" style="font-size:9px;">✅ Mon cours</span>
+                    <span *ngIf="!isMonCours(c)" class="badge" style="background:rgba(0,0,0,.4);border-color:transparent;color:white;font-size:9px;">👤 Autre</span>
+                  </div>
+                  <div class="absolute bottom-0 left-0 right-0 h-0.5"
+                       [style.background]="getModColor(i).color"></div>
+                </div>
+                <!-- Contenu -->
+                <div class="p-4 flex flex-col flex-1">
+                  <h3 class="font-bold text-sm mb-1 clamp-2"
+                      style="font-family:'Syne',sans-serif;color:var(--text);">{{ c.titre }}</h3>
+                  <p class="text-xs leading-relaxed mb-4 clamp-2" style="color:var(--text-3);">{{ c.description }}</p>
+                  <!-- Métadonnées -->
+                  <div class="grid grid-cols-2 gap-2 mb-4 mt-auto">
+                    <div class="flex items-center gap-1.5 p-2 rounded-lg"
+                         style="background:var(--surface-2);border:1px solid var(--border);">
+                      <span>⏱️</span>
+                      <span class="text-xs" style="color:var(--text-3);">{{ formatDureeEns(c.dureeMinutes) }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 p-2 rounded-lg"
+                         style="background:var(--surface-2);border:1px solid var(--border);">
+                      <span>👥</span>
+                    </div>
+                    <div class="col-span-2 flex items-center gap-1.5 p-2 rounded-lg"
+                         style="background:var(--surface-2);border:1px solid var(--border);">
+                      <span>📅</span>
+                      <span class="text-xs" style="color:var(--text-3);">Créé le {{ formatDateEns(c.dateCreation) }}</span>
+                    </div>
+                  </div>
+                  <!-- Actions -->
+                  <div class="flex gap-2">
+                    <a [routerLink]="['/cours', c.idCours]" class="btn btn-brand btn-sm flex-1"
+                       style="text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+                      ▶ Voir le cours
+                    </a>
+
+                    <button *ngIf="isMonCours(c)" (click)="openEditCours(c)" class="btn btn-ghost btn-sm" title="Modifier">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button *ngIf="isMonCours(c)" (click)="confirmDelete('cours', c.idCours!, c.titre)" class="btn btn-danger btn-sm" title="Supprimer">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                    </button>
+                    <button *ngIf="isMonCours(c)" (click)="openUpload(c)" class="btn btn-ghost btn-sm"
+                            [disabled]="uploadLoading && uploadingId===c.idCours" title="Uploader un fichier">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </button>
+                  </div>
+                  <!-- Interactions cours -->
+                  <app-cours-interaction [coursId]="c.idCours!" userRole="enseignant"></app-cours-interaction>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+        </div>
+      </ng-container>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- SECTION : Mes Apprenants                                            -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <ng-container *ngIf="activeSection==='apprenants'">
+        <div class="animate-fade-in space-y-5">
+
+          <!-- En-tete -->
+          <div class="glass rounded-2xl p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 class="text-xl font-bold" style="font-family:'Syne',sans-serif;color:var(--text);">Mes Apprenants</h2>
+                <p class="text-sm mt-1" style="color:var(--text-3);">
+                  {{ mesApprenants.length }} inscription(s) au total — {{ modules.length }} module(s)
+                </p>
+              </div>
+              <button (click)="loadMesApprenants()" class="btn btn-ghost btn-sm flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"/>
+                  <path d="M20.49 15a9 9 0 1 1-.57-5.01"/>
+                </svg>
+                Actualiser
+              </button>
+            </div>
+
+            <!-- Barre de recherche -->
+            <div class="relative max-w-sm">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2" width="13" height="13"
+                   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   style="color:var(--text-3);">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="text" [(ngModel)]="apprenantSearch"
+                     placeholder="Rechercher par ID ou module..."
+                     class="inp" style="padding-left:36px;font-size:13px;"/>
+            </div>
+
+            <!-- Erreur -->
+            <div *ngIf="apprenantError" class="alert alert-red rounded-xl mt-4 text-sm">
+              ⚠️ {{ apprenantError }}
+            </div>
+          </div>
+
+          <!-- ── Vue par MODULE (grille des modules avec compteur) ── -->
+          <ng-container *ngIf="!moduleSelectionneId">
+
+            <!-- Skeleton -->
+            <div *ngIf="loadingApprenants" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div *ngFor="let s of [1,2,3]" class="glass rounded-2xl p-5 space-y-3">
+                <div class="skeleton h-5 w-2/3 rounded-lg"></div>
+                <div class="skeleton h-3 w-1/3 rounded-lg"></div>
+                <div class="skeleton h-10 w-full rounded-xl mt-3"></div>
+              </div>
+            </div>
+
+            <!-- Aucun module -->
+            <div *ngIf="!loadingApprenants && modules.length === 0"
+                 class="glass rounded-2xl flex flex-col items-center justify-center py-16 gap-3 text-center">
+              <span style="font-size:48px;">📦</span>
+              <p class="font-semibold" style="color:var(--text);">Vous n'avez pas encore de modules.</p>
+              <button (click)="ouvrirContenu(); openCreateMod()" class="btn btn-brand btn-sm mt-2">
+                Créer un module
+              </button>
+            </div>
+
+            <!-- Grille modules -->
+            <div *ngIf="!loadingApprenants && modules.length > 0"
+                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div *ngFor="let mod of modules; let i=index"
+                   class="glass glass-hover rounded-2xl p-5 flex flex-col"
+                   style="cursor:pointer;"
+                   (click)="chargerApprenantsDuModule(mod.id!, mod.nom)">
+
+                <!-- Header carte -->
+                <div class="flex items-start gap-3 mb-4">
+                  <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                       [style.background]="getModColor(i).dim">
+                    📦
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-sm truncate"
+                        style="font-family:'Syne',sans-serif;color:var(--text);">
+                      {{ mod.nom }}
+                    </h4>
+                    <span class="text-xs font-mono px-2 py-0.5 rounded-md"
+                          style="background:var(--surface-2);color:var(--brand);border:1px solid var(--border);">
+                      {{ mod.code }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Footer carte -->
+                <div class="flex items-center justify-between mt-auto pt-3"
+                     style="border-top:1px solid var(--border);">
+                  <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl flex items-center justify-center"
+                         style="background:var(--brand-dim);">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2" style="color:var(--brand);">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <span class="text-2xl font-bold"
+                            style="font-family:'Syne',sans-serif;color:var(--text);">
+                        {{ getNbApprenantsDuModule(mod.id!) }}
+                      </span>
+                      <span class="text-xs ml-1" style="color:var(--text-3);">apprenant(s)</span>
+                    </div>
+                  </div>
+                  <span class="text-xs font-semibold flex items-center gap-1"
+                        style="color:var(--brand);">
+                    Voir la liste
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- ── Vue DETAIL : liste apprenants d'un module ── -->
+          <div *ngIf="moduleSelectionneId" class="glass rounded-2xl overflow-hidden">
+
+            <!-- Header -->
+            <div class="flex items-center gap-3 px-5 py-4"
+                 style="border-bottom:1px solid var(--border);">
+              <button (click)="fermerDetailApprenants()" class="btn btn-ghost btn-sm">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Retour
+              </button>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-base truncate"
+                    style="font-family:'Syne',sans-serif;color:var(--text);">
+                  {{ moduleSelectionneNom }}
+                </h3>
+                <p class="text-xs" style="color:var(--text-3);">
+                  {{ apprenantsFiltres.length }} apprenant(s) inscrit(s)
+                </p>
+              </div>
+              <button (click)="chargerApprenantsDuModule(moduleSelectionneId!, moduleSelectionneNom)"
+                      class="btn btn-ghost btn-sm" title="Actualiser">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"/>
+                  <path d="M20.49 15a9 9 0 1 1-.57-5.01"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Skeleton -->
+            <div *ngIf="loadingApprenants" class="p-4 space-y-3">
+              <div *ngFor="let s of [1,2,3,4]"
+                   class="flex items-center gap-4 p-3 rounded-xl"
+                   style="background:var(--surface-2);">
+                <div class="skeleton w-10 h-10 rounded-full flex-shrink-0"></div>
+                <div class="flex-1 space-y-2">
+                  <div class="skeleton h-4 w-1/3 rounded-lg"></div>
+                  <div class="skeleton h-3 w-1/4 rounded-lg"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Vide -->
+            <div *ngIf="!loadingApprenants && apprenantsFiltres.length === 0"
+                 class="flex flex-col items-center justify-center py-16 gap-3 text-center">
+              <span style="font-size:44px;">👥</span>
+              <p class="font-semibold" style="color:var(--text);">
+                Aucun apprenant inscrit à ce module.
+              </p>
+            </div>
+
+            <!-- Liste -->
+            <div *ngIf="!loadingApprenants && apprenantsFiltres.length > 0">
+              <div *ngFor="let a of apprenantsFiltres; let i=index"
+                   class="flex items-center gap-4 px-5 py-4"
+                   [style.border-bottom]="i < apprenantsFiltres.length - 1 ? '1px solid var(--border)' : 'none'">
+
+                <!-- Avatar -->
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                     style="background:linear-gradient(135deg,var(--brand),var(--blue));color:white;">
+                  {{ 'A' + (i + 1) }}
+                </div>
+
+                <!-- Infos -->
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-sm" style="color:var(--text);">
+                    Apprenant #{{ a.apprenantId }}
+                  </div>
+                  <div class="flex items-center gap-3 mt-0.5 flex-wrap">
+                    <span class="text-xs" style="color:var(--text-3);">
+                      Inscrit le {{ formatDateEns(a.dateInscription) }}
+                    </span>
+                    <span class="text-xs px-2 py-0.5 rounded-md font-mono"
+                          style="background:var(--surface-2);color:var(--text-3);border:1px solid var(--border);">
+                      Inscription #{{ a.inscriptionId }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Badge statut -->
+                <span class="badge text-xs flex-shrink-0"
+                      style="background:var(--green-dim);color:var(--green);border:1px solid var(--green);">
+                  ✓ Inscrit
+                </span>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+      <!-- FIN SECTION : Mes Apprenants -->
+
+      <!-- ── Section Notifications enseignant ── -->
+      <ng-container *ngIf="activeSection==='notifications'">
+        <div class="animate-fade-in space-y-4">
+          <div class="rounded-2xl p-5" style="background:linear-gradient(135deg,var(--surface),var(--surface-2));border:1.5px solid var(--border);">
+            <h2 class="text-xl font-bold mb-1" style="font-family:'Syne',sans-serif;color:var(--text);">🔔 Mes notifications</h2>
+            <p class="text-sm" style="color:var(--text-2);">Soyez notifié des inscriptions de vos apprenants, interactions sur vos cours et mises à jour.</p>
+          </div>
+          <app-notification-center role="enseignant"></app-notification-center>
+        </div>
+      </ng-container>
+
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <!-- SECTION : MES QUIZ (Enseignant)                                      -->
+      <!-- ════════════════════════════════════════════════════════════════════ -->
+      <ng-container *ngIf="activeSection==='quiz'">
+        <div class="animate-fade-in space-y-5">
+
+          <!-- En-tête -->
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 class="text-xl font-bold" style="font-family:'Syne',sans-serif;color:var(--text);">🎯 Mes Quiz</h2>
+              <p class="text-sm mt-1" style="color:var(--text-3);">Créez et gérez vos quiz pour vos cours.</p>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="ouvrirCreerQuiz()" class="btn flex items-center gap-2"
+                style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;border:none;font-weight:600;padding:10px 18px;border-radius:8px;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Nouveau Quiz
+              </button>
+
+              <!-- 🤖 Bouton Génération IA -->
+              <button (click)="ouvrirGenerationIA()" class="btn flex items-center gap-2"
+                style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;font-weight:600;padding:10px 18px;border-radius:8px;">
+                  🤖 Générer par IA
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="loadingQuiz" class="flex justify-center py-16">
+            <svg class="animate-spin-slow" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#7c3aed;"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          </div>
+
+          <!-- Vide -->
+          <div *ngIf="!loadingQuiz && mesQuiz.length===0"
+               class="flex flex-col items-center justify-center py-20 rounded-2xl"
+               style="background:var(--surface);border:1px dashed var(--border);">
+            <div class="text-6xl mb-4">🎯</div>
+            <p class="font-bold text-lg mb-2" style="color:var(--text);">Aucun quiz créé</p>
+            <p class="text-sm mb-5" style="color:var(--text-3);">Commencez par créer votre premier quiz !</p>
+            <button (click)="ouvrirCreerQuiz()" class="btn"
+                    style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;border:none;font-weight:600;">
+              + Créer mon premier quiz
+            </button>
+          </div>
+
+          <!-- Grille quiz -->
+          <div *ngIf="!loadingQuiz && mesQuiz.length>0"
+               class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div *ngFor="let q of mesQuiz; let i=index"
+                 class="glass glass-hover rounded-2xl overflow-hidden flex flex-col animate-slide-up"
+                 [class]="'d-' + (i%5)">
+
+              <!-- Bannière -->
+              <div class="h-24 flex items-center justify-center relative"
+                   style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">
+                <div class="absolute inset-0 opacity-10"
+                     style="background:linear-gradient(135deg,transparent,rgba(109,40,217,.6));"></div>
+                <span class="relative z-10 text-4xl">🎯</span>
+                <!-- Badges -->
+                <div class="absolute top-2 right-2 flex gap-1.5">
+                  <span class="badge text-xs"
+                        [style.background]="q.actif?'var(--green-dim)':'var(--red-dim)'"
+                        [style.color]="q.actif?'var(--green)':'var(--red)'">
+                    {{ q.actif ? '✅ Actif' : '❌ Inactif' }}
+                  </span>
+                </div>
+                <!-- Icônes config -->
+                <div class="absolute bottom-2 left-2 flex gap-1">
+                  <span *ngIf="q.config.correctionInstantanee" title="Correction instantanée"
+                        class="text-xs px-1.5 py-0.5 rounded-full"
+                        style="background:rgba(109,40,217,.15);color:#6d28d9;">⚡</span>
+                  <span *ngIf="q.config.tempsLimiteMinutes" title="Timer"
+                        class="text-xs px-1.5 py-0.5 rounded-full"
+                        style="background:rgba(109,40,217,.15);color:#6d28d9;">⏱ {{q.config.tempsLimiteMinutes}}min</span>
+                  <span *ngIf="q.config.randomiserQuestions" title="Aléatoire"
+                        class="text-xs px-1.5 py-0.5 rounded-full"
+                        style="background:rgba(109,40,217,.15);color:#6d28d9;">🔀</span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 h-0.5"
+                     style="background:linear-gradient(90deg,#7c3aed,#6d28d9);"></div>
+              </div>
+
+              <!-- Corps -->
+              <div class="p-4 flex-1 flex flex-col gap-3">
+                <div>
+                  <h3 class="font-bold text-sm mb-1 clamp-2"
+                      style="font-family:'Syne',sans-serif;color:var(--text);">{{ q.titre }}</h3>
+                  <p class="text-xs clamp-2" style="color:var(--text-3);">{{ q.description || 'Aucune description' }}</p>
+                </div>
+
+                <!-- Meta -->
+                <div class="flex flex-wrap gap-2">
+                  <span class="badge text-xs" style="background:var(--surface-2);color:var(--text-3);">
+                    📘 {{ getNomCours(q.coursId) }}
+                  </span>
+                  <span class="badge text-xs" style="background:var(--surface-2);color:var(--text-3);">
+                    ❓ {{ q.nombreQuestions ?? q.questions?.length ?? 0 }} question(s)
+                  </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-2 mt-auto pt-3" style="border-top:1px solid var(--border);">
+                  <button (click)="ouvrirQuestions(q)"
+                          class="btn btn-brand btn-sm flex-1"
+                          style="font-size:11px;">
+                    ❓ Questions
+                  </button>
+                  <button (click)="ouvrirModifierQuiz(q)" class="btn btn-ghost btn-sm" title="Modifier">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button (click)="demanderSuppressionQuiz(q)" class="btn btn-danger btn-sm" title="Supprimer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+      <!-- FIN SECTION : Mes Quiz -->
+
+    </main>
+  </div>
+</div>
+
+<!-- ══ MODALS CRUD ══ -->
+
+<!-- Modal Catégorie -->
+<div *ngIf="showCatModal" class="overlay" (click)="showCatModal=false">
+  <div class="modal" style="max-width:460px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+        {{ editingCat ? 'Modifier la catégorie' : 'Nouvelle catégorie' }}
+      </h3>
+      <button (click)="showCatModal=false" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+    </div>
+    <form [formGroup]="catForm" (ngSubmit)="submitCat()" novalidate class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Nom *</label>
+        <input class="inp" formControlName="nom" placeholder="Nom de la catégorie" [class.err]="cf['nom'].invalid && cf['nom'].touched"/>
+        <div *ngIf="cf['nom'].invalid && cf['nom'].touched" class="text-xs mt-1" style="color:var(--red);">Nom requis (min. 2 caractères)</div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Description</label>
+        <textarea class="inp" formControlName="description" rows="3" placeholder="Description…" style="resize:vertical;"></textarea>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="showCatModal=false" class="btn btn-ghost flex-1">Annuler</button>
+        <button type="submit" [disabled]="catLoading" class="btn btn-brand flex-1">
+          <svg *ngIf="catLoading" class="animate-spin-slow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          {{ editingCat ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Module -->
+<div *ngIf="showModModal" class="overlay" (click)="showModModal=false">
+  <div class="modal" style="max-width:520px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+        {{ editingMod ? 'Modifier le module' : 'Nouveau module' }}
+      </h3>
+      <button (click)="showModModal=false" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+    </div>
+    <form [formGroup]="modForm" (ngSubmit)="submitMod()" novalidate class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Nom *</label>
+          <input class="inp" formControlName="nom" placeholder="Nom du module" [class.err]="mf['nom'].invalid && mf['nom'].touched"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Code *</label>
+          <input class="inp" formControlName="code" placeholder="ex: INF-01" [class.err]="mf['code'].invalid && mf['code'].touched"/>
+          <div *ngIf="mf['code'].invalid && mf['code'].touched" class="text-xs mt-1" style="color:var(--red);">Format : XX-00</div>
+        </div>
+      </div>
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Description *</label>
+        <textarea class="inp" formControlName="description" rows="2" placeholder="Description…" style="resize:vertical;"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Catégorie</label>
+          <select class="inp" formControlName="categorieId">
+            <option [value]="null">Aucune</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">{{cat.nom}}</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Statut</label>
+          <select class="inp" formControlName="statut">
+            <option value="ACTIF">Actif</option>
+            <option value="BROUILLON">Brouillon</option>
+            <option value="ARCHIVE">Archivé</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="showModModal=false" class="btn btn-ghost flex-1">Annuler</button>
+        <button type="submit" [disabled]="modLoading" class="btn btn-brand flex-1">
+          <svg *ngIf="modLoading" class="animate-spin-slow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          {{ editingMod ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Cours -->
+<div *ngIf="showCoursModal" class="overlay" (click)="showCoursModal=false">
+  <div class="modal" style="max-width:560px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+        {{ editingCours ? 'Modifier le cours' : 'Nouveau cours' }}
+      </h3>
+      <button (click)="showCoursModal=false" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+    </div>
+    <form [formGroup]="coursForm" (ngSubmit)="submitCours()" novalidate class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Titre *</label>
+        <input class="inp" formControlName="titre" placeholder="Titre du cours" [class.err]="ff['titre'].invalid && ff['titre'].touched"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Description *</label>
+        <textarea class="inp" formControlName="description" rows="3" placeholder="Description du cours…" style="resize:vertical;"></textarea>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Module *</label>
+          <select class="inp" formControlName="moduleId" [class.err]="ff['moduleId'].invalid && ff['moduleId'].touched">
+            <option [value]="null">Sélectionner…</option>
+            <option *ngFor="let m of modules" [value]="m.id">{{m.nom}}</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Niveau *</label>
+          <select class="inp" formControlName="niveau">
+            <option *ngFor="let n of niveaux" [value]="n">{{n}}</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Statut</label>
+          <select class="inp" formControlName="statut">
+            <option *ngFor="let s of statuts" [value]="s">{{s}}</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Durée (min)</label>
+          <input class="inp" type="number" formControlName="dureeMinutes" placeholder="ex: 45"/>
+        </div>
+      </div>
+      <!-- Upload fichier -->
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Fichier (PDF / vidéo)</label>
+        <input type="file" accept="application/pdf,video/mp4,video/webm,video/ogg" (change)="onFileSelected($event)"
+               class="inp" style="padding:8px;cursor:pointer;"/>
+        <p *ngIf="selectedFile" class="text-xs mt-1" style="color:var(--brand);">📎 {{ selectedFile.name }}</p>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="showCoursModal=false" class="btn btn-ghost flex-1">Annuler</button>
+        <button type="submit" [disabled]="coursLoading" class="btn btn-brand flex-1">
+          <svg *ngIf="coursLoading" class="animate-spin-slow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          {{ editingCours ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Suppression -->
+<div *ngIf="deleteTarget" class="overlay" (click)="cancelDelete()">
+  <div class="modal" style="max-width:380px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:var(--red-dim);">🗑️</div>
+      <div>
+        <p class="font-bold text-sm" style="color:var(--text);">Confirmer la suppression</p>
+        <p class="text-xs" style="color:var(--text-3);">Cette action est irréversible.</p>
+      </div>
+    </div>
+    <p class="text-sm mb-4" style="color:var(--text-2);">
+      Supprimer <strong style="color:var(--text);">{{deleteTarget.name}}</strong> ?
+    </p>
+    <div class="flex gap-3">
+      <button (click)="cancelDelete()" class="btn btn-ghost flex-1">Annuler</button>
+      <button (click)="executeDelete()" class="btn btn-danger flex-1">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ MODAL : Créer / Modifier un Quiz ════════════════════════ -->
+<div *ngIf="showQuizModal" class="overlay" (click)="fermerQuizModal()">
+  <div class="modal" style="max-width:560px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+        {{ editingQuiz ? '✏️ Modifier le Quiz' : '🎯 Nouveau Quiz' }}
+      </h3>
+      <button (click)="fermerQuizModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+    </div>
+    <form [formGroup]="quizForm" (ngSubmit)="sauvegarderQuiz()" novalidate class="space-y-4">
+
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Titre *</label>
+        <input class="inp" formControlName="titre" placeholder="Titre du quiz"
+               [class.err]="getQuizControl('titre').invalid && getQuizControl('titre').touched"/>
+        <p *ngIf="getQuizControl('titre').invalid && getQuizControl('titre').touched"
+           class="text-xs mt-1" style="color:var(--red);">Min. 3 caractères requis.</p>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Description</label>
+        <textarea class="inp" formControlName="description" rows="2" placeholder="Description du quiz…" style="resize:vertical;"></textarea>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Cours associé *</label>
+        <select class="inp" formControlName="coursId" [class.err]="getQuizControl('coursId').invalid && getQuizControl('coursId').touched">
+          <option [ngValue]="null">-- Sélectionner un cours --</option>
+          <option *ngFor="let c of cours" [value]="c.idCours">{{ c.titre }}</option>
+        </select>
+        <p *ngIf="getQuizControl('coursId').invalid && getQuizControl('coursId').touched"
+           class="text-xs mt-1" style="color:var(--red);">Veuillez sélectionner un cours.</p>
+      </div>
+
+      <!-- Configuration -->
+      <div class="rounded-xl p-4 space-y-3" style="background:var(--surface-2);border:1px solid var(--border);">
+        <p class="text-xs font-bold uppercase tracking-wider" style="color:var(--text-3);">⚙️ Configuration</p>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--text-2);">
+            <input type="checkbox" formControlName="correctionInstantanee" class="rounded"/>
+            Correction instantanée
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--text-2);">
+            <input type="checkbox" formControlName="randomiserQuestions" class="rounded"/>
+            Questions aléatoires
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--text-2);">
+            <input type="checkbox" formControlName="randomiserReponses" class="rounded"/>
+            Réponses aléatoires
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer text-sm" style="color:var(--text-2);">
+            <input type="checkbox" formControlName="actif" class="rounded"/>
+            Quiz actif
+          </label>
+        </div>
+        <div>
+          <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Temps limite (minutes)</label>
+          <input class="inp" type="number" min="1" max="180" formControlName="tempsLimiteMinutes"
+                 placeholder="Optionnel — ex: 30" style="max-width:200px;"/>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="fermerQuizModal()" class="btn btn-ghost flex-1">Annuler</button>
+        <button type="submit" [disabled]="quizLoading" class="btn flex-1"
+                style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;border:none;font-weight:600;">
+          <svg *ngIf="quizLoading" class="animate-spin-slow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          {{ editingQuiz ? 'Mettre à jour' : 'Créer le Quiz' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════════ MODAL : Gérer les Questions ════════════════════════ -->
+<div *ngIf="showQuestionsModal" class="overlay" (click)="fermerQuestionsModal()">
+  <div class="modal" style="max-width:700px;max-height:85vh;display:flex;flex-direction:column;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-4 flex-shrink-0">
+      <div>
+        <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+          ❓ Questions — {{ quizSelectionne?.titre }}
+        </h3>
+        <p class="text-xs mt-0.5" style="color:var(--text-3);">
+          {{ quizSelectionne?.questions?.length ?? 0 }} question(s)
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="ouvrirAjouterQuestion()" class="btn btn-brand btn-sm">+ Question</button>
+        <button (click)="fermerQuestionsModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="questionsLoading" class="flex justify-center py-8 flex-shrink-0">
+      <svg class="animate-spin-slow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--brand);"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+    </div>
+
+    <!-- Vide -->
+    <div *ngIf="!questionsLoading && (!quizSelectionne?.questions || quizSelectionne?.questions?.length===0)"
+         class="flex flex-col items-center justify-center py-12 flex-shrink-0">
+      <div class="text-4xl mb-3">❓</div>
+      <p class="font-semibold" style="color:var(--text);">Aucune question</p>
+      <p class="text-sm mt-1 mb-4" style="color:var(--text-3);">Ajoutez votre première question.</p>
+    </div>
+
+    <!-- Liste questions -->
+    <div class="overflow-y-auto flex-1 space-y-3 pr-1">
+      <div *ngFor="let question of quizSelectionne?.questions; let qi=index"
+           class="rounded-2xl p-4" style="background:var(--surface-2);border:1px solid var(--border);">
+        <div class="flex items-start gap-3">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+               style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:white;">{{ qi+1 }}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="badge text-xs"
+                    [style.background]="question.type==='QCM'?'var(--blue-dim)':'var(--orange-dim)'"
+                    [style.color]="question.type==='QCM'?'var(--blue)':'var(--orange)'">
+                {{ question.type==='QCM' ? 'QCM' : 'Vrai / Faux' }}
+              </span>
+            </div>
+            <p class="text-sm font-semibold mb-2" style="color:var(--text);">{{ question.texte }}</p>
+            <!-- Réponses -->
+            <div class="space-y-1">
+              <div *ngFor="let rep of question.reponses"
+                   class="flex items-center gap-2 text-xs py-1 px-2 rounded-lg"
+                   [style.background]="rep.estCorrecte?'var(--green-dim)':'transparent'"
+                   [style.color]="rep.estCorrecte?'var(--green)':'var(--text-3)'">
+                <span>{{ rep.estCorrecte ? '✅' : '⚪' }}</span>
+                <span>{{ rep.texte }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <button (click)="ouvrirModifierQuestion(question)" class="btn btn-ghost btn-sm" title="Modifier" style="padding:4px 8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button (click)="demanderSuppressionQuestion(question)" class="btn btn-danger btn-sm" title="Supprimer" style="padding:4px 8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end mt-4 pt-3 flex-shrink-0" style="border-top:1px solid var(--border);">
+      <button (click)="fermerQuestionsModal()" class="btn btn-ghost">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ MODAL : Ajouter / Modifier une Question ════════════════════════ -->
+<div *ngIf="showQuestionModal" class="overlay" (click)="fermerQuestionModal()">
+  <div class="modal" style="max-width:560px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="font-bold text-base" style="font-family:'Syne',sans-serif;color:var(--text);">
+        {{ editingQuestion ? '✏️ Modifier la Question' : '➕ Nouvelle Question' }}
+      </h3>
+      <button (click)="fermerQuestionModal()" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:22px;">✕</button>
+    </div>
+
+    <form [formGroup]="questionForm" (ngSubmit)="sauvegarderQuestion()" novalidate class="space-y-4">
+
+      <!-- Type -->
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Type de question *</label>
+        <select class="inp" formControlName="type" (change)="onTypeChange(getQControl('type').value)">
+          <option value="QCM">QCM (Choix multiple)</option>
+          <option value="VRAI_FAUX">Vrai / Faux</option>
+        </select>
+      </div>
+
+      <!-- Texte -->
+      <div>
+        <label class="text-xs font-semibold uppercase tracking-wider mb-1 block" style="color:var(--text-3);">Question *</label>
+        <textarea class="inp" formControlName="texte" rows="3" placeholder="Entrez votre question ici…"
+                  [class.err]="getQControl('texte').invalid && getQControl('texte').touched"
+                  style="resize:vertical;"></textarea>
+        <p *ngIf="getQControl('texte').invalid && getQControl('texte').touched"
+           class="text-xs mt-1" style="color:var(--red);">Question obligatoire (min. 3 car.)</p>
+      </div>
+
+      <!-- Réponses -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-semibold uppercase tracking-wider" style="color:var(--text-3);">Réponses *</label>
+          <button type="button" class="btn btn-ghost btn-sm text-xs"
+                  *ngIf="getQControl('type').value === 'QCM'"
+                  (click)="ajouterReponse()">+ Réponse</button>
+        </div>
+        <div formArrayName="reponses" class="space-y-2">
+          <div *ngFor="let rep of reponses.controls; let ri=index" [formGroupName]="ri"
+               class="flex items-center gap-2 p-2 rounded-xl"
+               style="background:var(--surface-2);border:1px solid var(--border);">
+            <input type="text" formControlName="texte"
+                   placeholder="Texte de la réponse…"
+                   class="inp flex-1" style="border:none;background:transparent;padding:6px;"/>
+            <label class="flex items-center gap-1 text-xs cursor-pointer flex-shrink-0" style="color:var(--text-2);">
+              <input type="checkbox" formControlName="estCorrecte" style="accent-color:var(--green);"/>
+              Correct
+            </label>
+            <button type="button" class="btn btn-danger btn-sm flex-shrink-0"
+                    *ngIf="getQControl('type').value==='QCM' && reponses.length>2"
+                    (click)="supprimerReponseForm(ri)"
+                    style="padding:4px 8px;">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="fermerQuestionModal()" class="btn btn-ghost flex-1">Annuler</button>
+        <button type="submit" [disabled]="questionLoading" class="btn btn-brand flex-1">
+          <svg *ngIf="questionLoading" class="animate-spin-slow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/></svg>
+          {{ editingQuestion ? 'Mettre à jour' : 'Ajouter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════════ MODAL : Confirmation suppression Quiz/Question ════════════════════════ -->
+<div *ngIf="deleteQuizTarget" class="overlay" (click)="annulerSuppressionQuiz()">
+  <div class="modal" style="max-width:380px;" (click)="$event.stopPropagation()">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:var(--red-dim);">🗑️</div>
+      <div>
+        <p class="font-bold text-sm" style="color:var(--text);">Confirmer la suppression</p>
+        <p class="text-xs" style="color:var(--text-3);">Cette action est irréversible.</p>
+      </div>
+    </div>
+    <p class="text-sm mb-4" style="color:var(--text-2);">
+      Supprimer <strong style="color:var(--text);">{{ deleteQuizTarget.nom }}</strong> ?
+    </p>
+    <div class="flex gap-3">
+      <button (click)="annulerSuppressionQuiz()" class="btn btn-ghost flex-1">Annuler</button>
+      <button (click)="confirmerSuppressionQuiz()" class="btn btn-danger flex-1">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL : Génération Quiz par IA                                           -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<div *ngIf="showGenerationIAModal" class="overlay" (click)="fermerGenerationIA()">
+  <div class="modal-ia-box" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;
+                    background:var(--green-dim);border:1px solid rgba(16,185,129,.2);margin-bottom:10px;">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--green);">
+            🤖 Intelligence Artificielle
+          </span>
+        </div>
+        <h3 class="ia-title"
+            style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin:0 0 6px 0;">
+          Générer un Quiz par IA
+        </h3>
+        <p class="ia-subtitle" style="font-size:13px;margin:0;">
+          Uploadez un PDF — l'IA génère automatiquement vos questions
+        </p>
+      </div>
+      <button (click)="fermerGenerationIA()"
+              style="background:var(--surface-2);border:1px solid var(--border-2);cursor:pointer;
+                     color:var(--text-3);font-size:18px;line-height:1;padding:8px 10px;
+                     border-radius:10px;transition:all .2s;">✕</button>
+    </div>
+
+    <form [formGroup]="iaForm" (ngSubmit)="genererQuizIA()" novalidate
+          style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- Upload PDF -->
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                      letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+          📄 Document PDF *
+        </label>
+        <div class="ia-upload-zone"
+             style="border:2px dashed;border-radius:14px;padding:24px;
+                    text-align:center;transition:all .2s;cursor:pointer;"
+             [style.border-color]="selectedPdfFile ? 'var(--green)' : 'var(--border-2)'"
+             [style.background]="selectedPdfFile ? 'var(--green-dim)' : 'var(--surface-2)'">
+          <input type="file" accept="application/pdf" (change)="onPdfSelected($event)"
+                 style="position:absolute;opacity:0;width:0;height:0;" #pdfInput/>
+          <div *ngIf="!selectedPdfFile" (click)="pdfInput.click()">
+            <div style="font-size:32px;margin-bottom:8px;">📤</div>
+            <p class="ia-upload-title"
+               style="font-size:14px;font-weight:600;margin:0 0 4px 0;">
+              Cliquez pour uploader
+            </p>
+            <p class="ia-upload-subtitle" style="font-size:12px;margin:0;">
+              PDF uniquement — max 50MB
+            </p>
+          </div>
+          <div *ngIf="selectedPdfFile"
+               style="display:flex;align-items:center;gap:12px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:var(--green);
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <span style="font-size:20px;">📄</span>
+            </div>
+            <div style="flex:1;text-align:left;min-width:0;">
+              <p style="font-size:13px;font-weight:600;color:var(--text);margin:0;
+                        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ selectedPdfFile.name }}
+              </p>
+              <p style="font-size:12px;color:var(--green);margin:4px 0 0 0;">
+                ✅ {{ (selectedPdfFile.size / 1024 / 1024).toFixed(2) }} MB — Prêt
+              </p>
+            </div>
+            <button type="button" (click)="selectedPdfFile=null;pdfInput.value=''"
+                    style="background:var(--red-dim);border:1px solid rgba(239,68,68,.2);
+                           color:var(--red);border-radius:8px;padding:4px 10px;cursor:pointer;
+                           font-size:12px;font-weight:600;flex-shrink:0;">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cours associé -->
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                      letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+          📘 Cours associé *
+        </label>
+        <select formControlName="coursId" class="inp">
+          <option [value]="null">-- Sélectionner un cours --</option>
+          <option *ngFor="let c of cours" [value]="c.idCours">{{ c.titre }}</option>
+        </select>
+        <span *ngIf="iaForm.get('coursId')?.invalid && iaForm.get('coursId')?.touched"
+              style="display:block;font-size:12px;color:var(--red);margin-top:5px;">
+          Veuillez sélectionner un cours
+        </span>
+      </div>
+
+      <!-- Nombre de questions + Difficulté -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                        letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+            ❓ Nombre de questions
+          </label>
+          <input type="number" formControlName="nombreQuestions"
+                 min="1" max="50" class="inp" placeholder="5"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                        letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+            🎯 Difficulté
+          </label>
+          <select formControlName="difficulte" class="inp">
+            <option value="FACILE">🟢 Facile</option>
+            <option value="MOYEN">🟡 Moyen</option>
+            <option value="DIFFICILE">🔴 Difficile</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Type de questions -->
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                      letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+          📝 Type de questions
+        </label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <label *ngFor="let t of [{v:'QCM',l:'QCM'},{v:'VRAI_FAUX',l:'Vrai/Faux'},{v:'MIXTE',l:'Mixte'}]"
+                 style="cursor:pointer;">
+            <input type="radio" formControlName="typeQuestions" [value]="t.v"
+                   style="display:none;"/>
+            <span style="display:inline-flex;align-items:center;padding:8px 18px;
+                         border-radius:99px;font-size:13px;font-weight:600;
+                         transition:all .2s;cursor:pointer;"
+                  [style.background]="iaForm.get('typeQuestions')?.value===t.v
+                                      ? 'var(--green-dim)' : 'var(--surface-2)'"
+                  [style.color]="iaForm.get('typeQuestions')?.value===t.v
+                                 ? 'var(--green)' : 'var(--text-2)'"
+                  [style.border]="iaForm.get('typeQuestions')?.value===t.v
+                                  ? '1.5px solid rgba(16,185,129,.4)'
+                                  : '1.5px solid var(--border-2)'">
+              {{ t.l }}
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Titre optionnel -->
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+                      letter-spacing:.5px;margin-bottom:8px;color:var(--text-3);">
+          ✏️ Titre du quiz
+          <span style="font-weight:400;text-transform:none;font-size:11px;"> (optionnel)</span>
+        </label>
+        <input formControlName="titre" class="inp"
+               placeholder="Généré automatiquement si vide"/>
+      </div>
+
+      <!-- Configuration -->
+      <div class="ia-config-box"
+           style="border:1px solid;border-radius:14px;padding:16px;">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;
+                  letter-spacing:.5px;margin:0 0 14px 0;color:var(--text-3);">
+          ⚙️ Configuration
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <label class="ia-checkbox-card"
+                 style="display:flex;align-items:center;gap:10px;cursor:pointer;
+                        padding:10px 12px;border-radius:10px;border:1px solid;">
+            <input type="checkbox" formControlName="correctionInstantanee"
+                   style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;"/>
+            <span style="font-size:13px;font-weight:500;color:var(--text-2);">
+              Correction instantanée
+            </span>
+          </label>
+          <label class="ia-checkbox-card"
+                 style="display:flex;align-items:center;gap:10px;cursor:pointer;
+                        padding:10px 12px;border-radius:10px;border:1px solid;">
+            <input type="checkbox" formControlName="randomiserQuestions"
+                   style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;"/>
+            <span style="font-size:13px;font-weight:500;color:var(--text-2);">
+              Questions aléatoires
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex;gap:12px;padding-top:4px;">
+        <button type="button" (click)="fermerGenerationIA()" class="btn btn-ghost flex-1">
+          Annuler
+        </button>
+        <button type="submit"
+                [disabled]="iaGenerationLoading || !selectedPdfFile || iaForm.invalid"
+                style="flex:1;padding:13px 20px;border:none;border-radius:12px;
+                       background:linear-gradient(135deg,#10b981,#059669);
+                       color:white;cursor:pointer;font-weight:700;font-size:14px;
+                       font-family:'Plus Jakarta Sans',sans-serif;
+                       display:flex;align-items:center;justify-content:center;gap:8px;
+                       transition:opacity .2s;"
+                [style.opacity]="iaGenerationLoading||!selectedPdfFile||iaForm.invalid?'0.5':'1'"
+                [style.cursor]="iaGenerationLoading||!selectedPdfFile||iaForm.invalid?'not-allowed':'pointer'">
+          <svg *ngIf="iaGenerationLoading" class="animate-spin-slow" width="16" height="16"
+               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/>
+          </svg>
+          {{ iaGenerationLoading ? 'Génération en cours...' : '🤖 Générer le Quiz' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Progress -->
+    <div *ngIf="iaGenerationLoading"
+         style="margin-top:20px;padding:16px;border-radius:14px;
+                background:var(--green-dim);border:1px solid rgba(16,185,129,.2);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <svg class="animate-spin-slow" width="18" height="18" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             style="color:var(--green);flex-shrink:0;">
+          <circle cx="12" cy="12" r="10" stroke-dasharray="20 60"/>
+        </svg>
+        <p style="font-size:14px;font-weight:700;margin:0;color:var(--green);">
+          Génération en cours...
+        </p>
+      </div>
+      <p style="font-size:13px;line-height:1.6;color:var(--text-2);margin:0 0 12px 0;">
+        L'IA analyse votre PDF et génère les questions.
+        Cela prend <strong style="color:var(--text);">15 à 60 secondes</strong>.
+      </p>
+      <div style="height:6px;border-radius:99px;overflow:hidden;background:rgba(16,185,129,.15);">
+        <div style="height:100%;border-radius:99px;
+                    background:linear-gradient(90deg,#10b981,#059669);
+                    animation:shimmer 2s linear infinite;
+                    background-size:200% 100%;width:100%;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
